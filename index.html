@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>CI Pro Universe</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #1a1a1a;
+    overflow: hidden;
+    font-family: sans-serif;
+  }
+
+  /* ── Splash ── */
+  #splash {
+    position: fixed; inset: 0;
+    background: #111;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 99999;
+  }
+  #splash h1 { color: #fff; font-size: clamp(20px,4vw,40px); margin-bottom: 8px; }
+  #splash p  { color: #aaa; font-size: clamp(12px,2vw,16px); margin-bottom: 36px; text-align:center; padding:0 20px; }
+  #splash .start-btn {
+    background: #e02020; color: #fff;
+    border: none; border-radius: 40px;
+    padding: 14px 44px; font-size: clamp(14px,2vw,20px);
+    cursor: pointer; letter-spacing: 1px;
+  }
+  #splash .start-btn:hover { background: #c01010; }
+
+  /* ── Rotate overlay ── */
+  #rotateOverlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.95);
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 88888;
+  }
+  #rotateOverlay.show { display: flex; }
+  #rotateOverlay .icon { font-size: 60px; animation: rot 2.5s ease-in-out infinite; }
+  #rotateOverlay p { color: #fff; font-size: 18px; margin-top: 20px; text-align: center; padding: 0 30px; }
+  @keyframes rot {
+    0%,100% { transform: rotate(0deg); }
+    40%,60% { transform: rotate(90deg); }
+  }
+
+  /* ── Toolbar ── */
+  #toolbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; align-items: center;
+    justify-content: space-between;
+    background: #2a2a2a;
+    padding: 8px 14px; gap: 10px;
+    z-index: 1000;
+    border-bottom: 1px solid #444;
+    flex-wrap: wrap;
+  }
+  .tb-group { display: flex; align-items: center; gap: 8px; }
+
+
+  #fsBtn {
+    background: #e02020; color: #fff; border: none;
+    border-radius: 6px; padding: 6px 12px;
+    font-size: 13px; cursor: pointer;
+  }
+  #fsBtn:hover { background: #c01010; }
+
+  /* ── Quotes ticker ── */
+  #quotesTicker {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+  }
+  #quotesInner {
+    white-space: nowrap;
+    font-size: 12px;
+    color: #f0c040;
+    font-style: italic;
+    animation: tickerScroll 18s linear infinite;
+    display: inline-block;
+  }
+  #quotesInner::before { content: '💬  '; }
+  @keyframes tickerScroll {
+    0%   { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+
+  /* ── Search ── */
+  #searchWrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  #searchInput {
+    background: #333; color: #fff;
+    border: 1px solid #555; border-radius: 6px;
+    padding: 5px 10px; font-size: 13px;
+    width: 160px; outline: none;
+    transition: border 0.2s;
+  }
+  #searchInput:focus { border-color: #e02020; }
+  #searchInput::placeholder { color: #777; }
+
+  #searchBtn {
+    background: #444; color: #fff; border: none;
+    border-radius: 6px; padding: 6px 10px;
+    font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  #searchBtn:hover { background: #666; }
+
+  /* Search results dropdown */
+  #searchResults {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 340px;
+    background: #1e1e1e;
+    border: 1px solid #444;
+    border-radius: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+    z-index: 9999;
+    display: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  #searchResults.show { display: block; }
+
+  .search-header {
+    padding: 8px 14px;
+    font-size: 11px;
+    color: #888;
+    border-bottom: 1px solid #333;
+    position: sticky; top: 0;
+    background: #1e1e1e;
+  }
+
+  .search-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #2a2a2a;
+    transition: background 0.15s;
+  }
+  .search-item:hover { background: #2a2a2a; }
+  .search-item:last-child { border-bottom: none; }
+
+  .search-page {
+    font-size: 12px;
+    color: #e02020;
+    font-weight: bold;
+    margin-bottom: 3px;
+  }
+
+  .search-snippet {
+    font-size: 12px;
+    color: #ccc;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .search-snippet mark {
+    background: rgba(255,200,0,0.35);
+    color: #ffe066;
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+
+  .search-scanning {
+    padding: 14px;
+    color: #888;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .search-none {
+    padding: 14px;
+    color: #666;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  /* ── Canvas container ── */
+  #canvasContainer {
+    position: fixed;
+    top: 45px; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+    overflow: auto;
+  }
+
+  #pageWrapper {
+    position: relative;
+    display: inline-block;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+  }
+
+  #pdfCanvas {
+    display: block;
+    background: #fff;
+  }
+
+  /* Annotation layer sits exactly over canvas */
+  #annotationLayer {
+    position: absolute;
+    top: 0; left: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  #annotationLayer section {
+    position: absolute;
+    pointer-events: all;
+  }
+  #annotationLayer .linkAnnotation > a {
+    position: absolute;
+    inset: 0;
+    display: block;
+    cursor: pointer;
+  }
+  #annotationLayer .linkAnnotation > a:hover {
+    background: rgba(0,120,255,0.12);
+    border-radius: 2px;
+  }
+
+  #loadingBar {
+    position: fixed; top: 0; left: 0;
+    height: 3px; background: #e02020;
+    transition: width 0.3s; z-index: 99998; width: 0%;
+  }
+  #loadingMsg { color: #888; font-size: 14px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div id="loadingBar"></div>
+
+<div id="splash">
+  <h1>CI Pro Universe</h1>
+  <p>Please view in landscape for the best experience</p>
+  <button class="start-btn" onclick="startPresentation()">▶ Tap to Start</button>
+</div>
+
+<div id="rotateOverlay">
+  <div class="icon">🔄</div>
+  <p>Please rotate your device to <strong>landscape</strong> to continue</p>
+</div>
+
+<div id="toolbar">
+  <div class="tb-group">
+    <button class="tb-btn" id="prevBtn" onclick="changePage(-1)">◀ Prev</button>
+    <button class="tb-btn" id="nextBtn" onclick="changePage(1)">Next ▶</button>
+  </div>
+  <div class="tb-group">
+    <input type="number" id="pageInput" value="1" min="1"
+           onchange="goToPage(parseInt(this.value))"
+           onkeydown="if(event.key==='Enter') goToPage(parseInt(this.value))">
+    <span id="pageInfo">/ —</span>
+  </div>
+  <div class="tb-group">
+    <select id="zoomSelect" onchange="setZoom(this.value)">
+      <option value="page-fit" selected>Fit Page</option>
+      <option value="page-width">Fit Width</option>
+      <option value="0.5">50%</option>
+      <option value="0.75">75%</option>
+      <option value="1.0">100%</option>
+      <option value="1.25">125%</option>
+      <option value="1.5">150%</option>
+    </select>
+  </div>
+  <!-- Search -->
+  <div class="tb-group" id="searchWrap">
+    <input type="text" id="searchInput" placeholder="🔍 Search PDF..." 
+           onkeydown="if(event.key==='Enter') startSearch()">
+    <button class="tb-btn" id="searchBtn" onclick="startSearch()">Search</button>
+    <div id="searchResults"></div>
+  </div>
+
+  <button id="fsBtn" onclick="toggleFS()">⛶ Fullscreen</button>
+</div>
+
+<div id="canvasContainer">
+  <div id="pageWrapper">
+    <canvas id="pdfCanvas"></canvas>
+    <div id="annotationLayer"></div>
+  </div>
+  <div id="loadingMsg">Loading PDF...</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const PDF_URL = 'cipro.pdf';
+
+  let pdfDoc    = null;
+  let pageNum   = 1;
+  let pageCount = 0;
+  let rendering = false;
+  const zoomMode = 'page-fit'; // fixed — always fit page
+
+  const canvas     = document.getElementById('pdfCanvas');
+  const ctx        = canvas.getContext('2d');
+  const annLayer   = document.getElementById('annotationLayer');
+  const loadingMsg = document.getElementById('loadingMsg');
+
+  // ── Splash ──
+  function startPresentation() {
+    document.getElementById('splash').style.display = 'none';
+    const el  = document.documentElement;
+    const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+    if (rfs) rfs.call(el).catch(() => {});
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {});
+    }
+    checkOrientation();
+    loadPDF();
+  }
+
+  // ── Load PDF ──
+  function loadPDF() {
+    const bar = document.getElementById('loadingBar');
+    bar.style.width = '30%';
+    pdfjsLib.getDocument(PDF_URL).promise.then(pdf => {
+      pdfDoc    = pdf;
+      pageCount = pdf.numPages;
+      // pageCount loaded
+      bar.style.width = '100%';
+      setTimeout(() => { bar.style.width = '0%'; }, 400);
+      loadingMsg.style.display = 'none';
+      renderPage(pageNum);
+    }).catch(err => {
+      loadingMsg.textContent = '⚠️ Error loading PDF: ' + err.message;
+    });
+  }
+
+  // ── Calculate scale ──
+  function getScale(viewport) {
+    const c      = document.getElementById('canvasContainer');
+    const availW = c.clientWidth  - 24;
+    const availH = c.clientHeight - 24;
+    if (zoomMode === 'page-fit')   return Math.min(availW / viewport.width, availH / viewport.height);
+    if (zoomMode === 'page-width') return availW / viewport.width;
+    return parseFloat(zoomMode);
+  }
+
+  // ── Render page ──
+  function renderPage(num) {
+    if (!pdfDoc || rendering) return;
+    rendering = true;
+
+    pdfDoc.getPage(num).then(page => {
+      // DPR for Retina screens (iPad=2, iPhone=3, desktop=1)
+      const dpr      = Math.min(window.devicePixelRatio || 1, 3);
+      // QUALITY = extra render multiplier for sharpness
+      // On Retina (dpr>=2) DPR already gives sharpness, no extra needed
+      // On desktop (dpr=1) we render at 2x then shrink CSS size down
+      const QUALITY  = dpr >= 2 ? dpr : 2.0;
+      const base     = page.getViewport({ scale: 1.0 });
+      const scale    = getScale(base);
+
+      // Render at QUALITY x display scale for crisp output
+      const viewport = page.getViewport({ scale: scale * QUALITY });
+
+      // Canvas physical size = high-res render
+      canvas.width  = viewport.width;
+      canvas.height = viewport.height;
+
+      // Canvas CSS size = actual display size — browser downscales = sharp
+      canvas.style.width  = (viewport.width  / QUALITY) + 'px';
+      canvas.style.height = (viewport.height / QUALITY) + 'px';
+
+      page.render({ canvasContext: ctx, viewport }).promise.then(() => {
+        rendering = false;
+        updateUI();
+        buildAnnotationLayer(page, viewport, QUALITY);
+      });
+    });
+  }
+
+  // ── Build annotation layer ──
+  // Uses manual rect transform — avoids broken AnnotationLayer.render() API
+  function buildAnnotationLayer(page, viewport, dpr) {
+    dpr = dpr || 2.0;
+    annLayer.innerHTML = '';
+    // Annotation layer matches CSS display size
+    annLayer.style.width  = (viewport.width  / dpr) + 'px';
+    annLayer.style.height = (viewport.height / dpr) + 'px';
+
+    page.getAnnotations({ intent: 'display' }).then(annotations => {
+      annotations.forEach(ann => {
+        if (ann.subtype !== 'Link') return;
+
+        // Transform PDF coordinates → screen coordinates
+        // Divide by DPR so hotspots align with CSS canvas size
+        const rect = pdfjsLib.Util.normalizeRect(ann.rect);
+        const p1   = pdfjsLib.Util.applyTransform([rect[0], rect[1]], viewport.transform);
+        const p2   = pdfjsLib.Util.applyTransform([rect[2], rect[3]], viewport.transform);
+
+        // Divide by quality multiplier so hotspots align with CSS display size
+        const left   = Math.min(p1[0], p2[0]) / dpr;
+        const top    = Math.min(p1[1], p2[1]) / dpr;
+        const width  = Math.abs(p2[0] - p1[0]) / dpr;
+        const height = Math.abs(p2[1] - p1[1]) / dpr;
+
+        const section       = document.createElement('section');
+        section.className   = 'linkAnnotation';
+        section.style.left   = left   + 'px';
+        section.style.top    = top    + 'px';
+        section.style.width  = width  + 'px';
+        section.style.height = height + 'px';
+
+        const a = document.createElement('a');
+
+        if (ann.url) {
+          // ── External URL ──
+          a.href   = ann.url;
+          a.target = '_blank';
+          a.rel    = 'noopener noreferrer';
+        } else if (ann.dest) {
+          // ── Internal destination ──
+          a.href = 'javascript:void(0)';
+          const dest = ann.dest;
+          a.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            resolveAndNavigate(dest);
+          });
+        } else if (ann.action) {
+          // ── Named action ──
+          a.href = 'javascript:void(0)';
+          const action = ann.action;
+          a.addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleNamedAction(action);
+          });
+        } else {
+          return; // skip if no destination
+        }
+
+        section.appendChild(a);
+        annLayer.appendChild(section);
+      });
+    });
+  }
+
+  // ── Resolve internal destination ──
+  function resolveAndNavigate(dest) {
+    if (typeof dest === 'string') {
+      pdfDoc.getDestination(dest).then(destArray => {
+        if (destArray) resolveDestArray(destArray);
+      }).catch(console.error);
+    } else if (Array.isArray(dest)) {
+      resolveDestArray(dest);
+    }
+  }
+
+  function resolveDestArray(destArray) {
+    const ref = destArray[0];
+    if (ref && typeof ref === 'object' && ref.num !== undefined) {
+      // PDF object reference e.g. {"num":217,"gen":0}
+      pdfDoc.getPageIndex(ref).then(idx => goToPage(idx + 1)).catch(console.error);
+    } else if (typeof ref === 'number') {
+      goToPage(ref + 1);
+    }
+  }
+
+  // ── Named actions ──
+  function handleNamedAction(action) {
+    const type = typeof action === 'string' ? action : (action.type || '');
+    if (type === 'NextPage')  changePage(1);
+    if (type === 'PrevPage')  changePage(-1);
+    if (type === 'FirstPage') goToPage(1);
+    if (type === 'LastPage')  goToPage(pageCount);
+  }
+
+  // ── Navigation ──
+  function changePage(delta) { goToPage(pageNum + delta); }
+
+  function goToPage(num) {
+    if (!pdfDoc) return;
+    num = Math.max(1, Math.min(num, pageCount));
+    pageNum = num;
+    renderPage(num);
+  }
+
+  function updateUI() {
+    // UI updated — navigation handled via PDF internal links
+  }
+
+
+  // ── Keyboard ──
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight','ArrowDown',' '].includes(e.key)) changePage(1);
+    if (['ArrowLeft','ArrowUp'].includes(e.key)) changePage(-1);
+  });
+
+  // ── Touch swipe ──
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const diff = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(diff) > 50) changePage(diff < 0 ? 1 : -1);
+  });
+
+  // ── Fullscreen ──
+  function toggleFS() {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      const el = document.documentElement;
+      (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen).call(el).catch(() => {});
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document).catch(() => {});
+    }
+  }
+  const syncFsBtn = () => {
+    document.getElementById('fsBtn').textContent =
+      (document.fullscreenElement || document.webkitFullscreenElement) ? '✕ Exit' : '⛶ Fullscreen';
+    setTimeout(() => renderPage(pageNum), 300);
+  };
+  document.addEventListener('fullscreenchange', syncFsBtn);
+  document.addEventListener('webkitfullscreenchange', syncFsBtn);
+
+  // ── Orientation ──
+  function checkOrientation() {
+    const o = document.getElementById('rotateOverlay');
+    window.innerHeight > window.innerWidth ? o.classList.add('show') : o.classList.remove('show');
+  }
+  window.addEventListener('resize', () => { checkOrientation(); if (pdfDoc) renderPage(pageNum); });
+  window.addEventListener('orientationchange', () => setTimeout(checkOrientation, 300));
+
+  // ── Insurance Quotes Ticker ──
+  const QUOTES = [
+    "90% of Malaysians are underinsured — LIAM 2020",
+    "Critical Illness can strike anyone, at any age, at any time.",
+    "Medical Card pays the hospital. CI Insurance pays YOU.",
+    "After critical illness treatment, the most important thing is how we live on.",
+    "A lump sum CI payout gives you freedom to focus on recovery, not finances.",
+    "48 covered critical illnesses — one policy, comprehensive protection.",
+    "Cancer, Heart Attack, Stroke — the top 3 reasons for CI claims in Malaysia.",
+    "Don't wait until it's too late — protect your future today.",
+    "CI Pro: Beyond Critical Cover, beyond ordinary insurance.",
+    "Your medical card covers hospitalisation. Who covers the rest of your life?",
+  ];
+
+  let quoteIndex = 0;
+
+  function rotateQuote() {
+    const el = document.getElementById('quotesInner');
+    if (!el) return;
+    // Fade out
+    el.style.transition = 'opacity 0.6s';
+    el.style.opacity = '0';
+    setTimeout(() => {
+      quoteIndex = (quoteIndex + 1) % QUOTES.length;
+      el.textContent = QUOTES[quoteIndex];
+      el.style.opacity = '1';
+    }, 600);
+  }
+
+  // Start with first quote
+  document.getElementById('quotesInner').textContent = QUOTES[0];
+  // Rotate every 6 seconds
+  setInterval(rotateQuote, 6000);
+
+  // ── Search ──
+  let textCache  = {}; // { pageNum: 'full page text' }
+  let isScanning = false;
+
+  async function startSearch() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (!query || !pdfDoc) return;
+
+    const resultsDiv = document.getElementById('searchResults');
+    resultsDiv.innerHTML = '<div class="search-scanning">⏳ Scanning all ' + pageCount + ' pages...</div>';
+    resultsDiv.classList.add('show');
+
+    if (isScanning) return;
+    isScanning = true;
+
+    const results = [];
+    const lowerQuery = query.toLowerCase();
+
+    for (let p = 1; p <= pageCount; p++) {
+      // Use cache if already extracted
+      if (!textCache[p]) {
+        const page    = await pdfDoc.getPage(p);
+        const content = await page.getTextContent();
+        textCache[p]  = content.items.map(i => i.str).join(' ');
+      }
+
+      const text      = textCache[p];
+      const lowerText = text.toLowerCase();
+      const idx       = lowerText.indexOf(lowerQuery);
+
+      if (idx !== -1) {
+        // Extract snippet around match
+        const start   = Math.max(0, idx - 40);
+        const end     = Math.min(text.length, idx + query.length + 60);
+        let snippet   = text.slice(start, end).trim();
+
+        // Highlight the match in snippet
+        const matchIdx  = snippet.toLowerCase().indexOf(lowerQuery);
+        if (matchIdx !== -1) {
+          snippet =
+            escapeHtml(snippet.slice(0, matchIdx)) +
+            '<mark>' + escapeHtml(snippet.slice(matchIdx, matchIdx + query.length)) + '</mark>' +
+            escapeHtml(snippet.slice(matchIdx + query.length));
+        }
+
+        results.push({ page: p, snippet });
+      }
+
+      // Update scanning message every 20 pages
+      if (p % 20 === 0) {
+        resultsDiv.innerHTML = '<div class="search-scanning">⏳ Scanning page ' + p + ' / ' + pageCount + '...</div>';
+      }
+    }
+
+    isScanning = false;
+    renderSearchResults(results, query);
+  }
+
+  function renderSearchResults(results, query) {
+    const resultsDiv = document.getElementById('searchResults');
+
+    if (results.length === 0) {
+      resultsDiv.innerHTML = '<div class="search-none">No results found for "<strong>' + escapeHtml(query) + '</strong>"</div>';
+      return;
+    }
+
+    let html = '<div class="search-header">Found ' + results.length + ' page' + (results.length > 1 ? 's' : '') + ' matching "<strong>' + escapeHtml(query) + '</strong>"</div>';
+
+    results.forEach(r => {
+      html += '<div class="search-item" onclick="jumpToSearchResult(' + r.page + ')">' +
+        '<div class="search-page">Page ' + r.page + '</div>' +
+        '<div class="search-snippet">...' + r.snippet + '...</div>' +
+        '</div>';
+    });
+
+    resultsDiv.innerHTML = html;
+  }
+
+  function jumpToSearchResult(page) {
+    goToPage(page);
+    document.getElementById('searchResults').classList.remove('show');
+    document.getElementById('searchInput').value = '';
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // Close search results when clicking outside
+  document.addEventListener('click', e => {
+    const wrap = document.getElementById('searchWrap');
+    if (!wrap.contains(e.target)) {
+      document.getElementById('searchResults').classList.remove('show');
+    }
+  });
+</script>
+</body>
+</html>
