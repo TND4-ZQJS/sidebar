@@ -3,136 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InsuFlow | Product Guidelines</title>
-    <!-- Link to your existing global styles -->
-    <link rel="stylesheet" href="style.css"> 
+    <title>InsuFlow Portal Workspace</title>
     <style>
-        body { background-color: #ffffff; padding-top: 48px; }
-        
-        .doc-layout {
-            display: flex;
+        /* Modern Apple Minimal Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+            padding-top: 52px; /* Smooth cushion so content clears the sticky header */
+            min-height: 100vh;
+        }
+
+        /* ─── STICKY TOP NAVIGATION BAR ─── */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 52px;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            z-index: 1000;
+        }
+
+        .nav-container {
             max-width: 1200px;
-            margin: 40px auto;
+            margin: 0 auto;
             padding: 0 24px;
-            gap: 60px;
+            height: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* Sticky Left Navigation for Docs */
-        .doc-sidebar {
-            width: 220px;
-            position: sticky;
-            top: 88px;
-            height: fit-content;
+        .logo {
+            font-weight: 600;
+            font-size: 15px;
+            letter-spacing: -0.01em;
+            cursor: pointer;
         }
 
-        .doc-sidebar h4 {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #86868b;
-            margin-bottom: 12px;
+        /* Menu items for Desktop View */
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .doc-sidebar a {
-            display: block;
-            padding: 8px 0;
+        .nav-item {
+            padding: 6px 14px;
             color: #515154;
             text-decoration: none;
-            font-size: 14px;
-            transition: color 0.2s ease;
-        }
-
-        .doc-sidebar a:hover { color: #0071e3; }
-
-        /* Clean Article Reading Area */
-        .doc-content {
-            flex-grow: 1;
-            max-width: 700px;
-        }
-
-        .doc-content h1 {
-            font-size: 40px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 8px;
-        }
-
-        .doc-meta {
             font-size: 13px;
-            color: #86868b;
-            margin-bottom: 32px;
-            border-bottom: 1px solid #e8e8ed;
-            padding-bottom: 16px;
+            font-weight: 500;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .doc-content h2 {
-            font-size: 24px;
-            font-weight: 600;
-            margin-top: 40px;
-            margin-bottom: 16px;
-            letter-spacing: -0.01em;
+        .nav-item:hover {
+            color: #000000;
+            background-color: rgba(0, 0, 0, 0.03);
         }
 
-        .doc-content p {
-            font-size: 16px;
-            color: #333336;
-            margin-bottom: 16px;
-            line-height: 1.6;
+        .nav-item.active {
+            color: #ffffff;
+            background-color: #1d1d1f; /* Premium dark active tab capsule */
         }
 
-        .info-callout {
+        /* Mobile Hamburger Icon (Hidden by default on Desktop) */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .menu-toggle span {
+            width: 20px;
+            height: 2px;
+            background-color: #1d1d1f;
+            transition: 0.2s ease;
+        }
+
+        /* ─── CONTENT PANELS WORKSPACE ─── */
+        .workspace {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .view-panel {
+            display: none; /* Keeps inactive topics completely hidden */
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        }
+
+        .view-panel.active {
+            display: block; /* Reveals active workspace instantly */
+        }
+
+        /* Standard Typography For Info Sections */
+        .view-panel h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; }
+        .view-panel h2 { font-size: 20px; font-weight: 600; margin-top: 28px; margin-bottom: 12px; }
+        .view-panel p { font-size: 15px; color: #515154; line-height: 1.6; margin-bottom: 16px; }
+        
+        .info-card {
             background-color: #f5f5f7;
             padding: 20px;
             border-radius: 12px;
-            margin: 24px 0;
-            font-size: 15px;
-            color: #1d1d1f;
+            margin: 20px 0;
+            border-left: 3px solid #0071e3;
+        }
+
+        /* ─── RESPONSIVE AUTO-HIDE MOBILE ENGINE ─── */
+        @media (max-width: 890px) {
+            .menu-toggle {
+                display: flex; /* Reveal burger bar */
+            }
+
+            .nav-menu {
+                position: absolute;
+                top: 52px;
+                left: 0;
+                width: 100%;
+                background-color: #ffffff;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 16px 24px;
+                gap: 4px;
+                display: none; /* Auto-hides menu instantly on mobile initialization */
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            }
+
+            /* Toggle class to show menu via mobile interaction */
+            .nav-menu.show {
+                display: flex;
+            }
+
+            .nav-item {
+                width: 100%;
+                padding: 12px 16px;
+                border-radius: 8px;
+                font-size: 14px;
+            }
+            
+            .view-panel { padding: 24px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Reusable Top Navigation Bar -->
+    <!-- Sticky Navigation Bar Header -->
     <header class="navbar">
         <div class="nav-container">
-            <span class="logo" onclick="window.location.href='index.html'" style="cursor:pointer">InsuFlow</span>
-            <nav class="nav-links">
-                <a href="dashboard.html">Workspace</a>
-                <a href="product-guide.html" style="color: #000; font-weight:600;">Guidelines</a>
-                <a href="index.html" class="btn-signin">Log Out</a>
+            <span class="logo" onclick="switchTopic('topic-1')">InsuFlow Hub</span>
+            
+            <!-- Mobile Menu Toggle Button -->
+            <div class="menu-toggle" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <!-- Dynamic Topics Links (5-6 Options) -->
+            <nav class="nav-menu" id="navMenu">
+                <div class="nav-item active" onclick="switchTopic('topic-1')">1-to-3 Form Filler</div>
+                <div class="nav-item" onclick="switchTopic('topic-2')">Product Guidelines</div>
+                <div class="nav-item" onclick="switchTopic('topic-3')">Underwriting Rules</div>
+                <div class="nav-item" onclick="switchTopic('topic-4')">EPP Payment Guide</div>
+                <div class="nav-item" onclick="switchTopic('topic-5')">Nomination Logic</div>
+                <div class="nav-item" onclick="switchTopic('topic-6')">Support Matrix</div>
             </nav>
         </div>
     </header>
 
-    <!-- Main Content Layout -->
-    <div class="doc-layout">
-        
-        <aside class="doc-sidebar">
-            <h4>Product Guidelines</h4>
-            <a href="#overview">Operational Overview</a>
-            <a href="#epp-rules">EPP Payment Rules</a>
-            <a href="#compliance">Labuan Compliance</a>
-        </aside>
+    <!-- Main Workspace Frame -->
+    <main class="workspace">
 
-        <main class="doc-content">
-            <span style="color:#0071e3; font-size:12px; font-weight:600; uppercase; tracking:0.05em;">Reference Manual</span>
-            <h1 id="overview">Offshore Product Guidelines</h1>
-            <div class="doc-meta">Last updated: May 2026 • Broker Operations</div>
+        <!-- Topic 1: Core Automation Tool -->
+        <div id="topic-1" class="view-panel active">
+            <!-- PASTE YOUR EXISTING FORM FILLER HTML / CANVAS SIGNATURES / SCRIPTS HERE -->
+            <h1>1-to-3 Form Filler Engine</h1>
+            <p>Your interactive tools, inputs, variables, and automated insurance form processor run directly inside this clean module shell.</p>
+        </div>
 
-            <p>Welcome to the unified broker operational manual. This section houses the structural guidelines required to successfully execute multi-form processing across our offshore insurance lines.</p>
-
-            <h2 id="epp-rules">EPP Payment Framework</h2>
-            <p>When executing an EPP Payment structure via the 1-to-3 filler engine, ensure the credit card authorization parameters exactly align with the bank's processing cycles. Misalignments can result in immediate submission rejections by the carrier.</p>
-            
-            <div class="info-callout">
-                <strong>Important Note:</strong> Always check that the premium allocation percentages total exactly 100% across all selected funds prior to printing or locking the signature pad.
+        <!-- Topic 2: Product Guidelines -->
+        <div id="topic-2" class="view-panel">
+            <h1>Offshore Product Guidelines</h1>
+            <p>This layout serves as the official operational guide for active brokers processing client assets through Labuan frameworks.</p>
+            <div class="info-card">
+                <strong>Rule Framework:</strong> Premium minimum requirements must exactly reconcile with carrier regulations before generating validation signatures.
             </div>
+        </div>
 
-            <h2 id="compliance">Labuan Compliance Architecture</h2>
-            <p>As authorized brokers, all multi-form documents generated through this local gateway must align with standard offshore data retention policies. Because this system functions strictly client-side, manual backup configurations should follow your office protocols.</p>
-        </main>
+        <!-- Topic 3: Underwriting Rules -->
+        <div id="topic-3" class="view-panel">
+            <h1>Broker Underwriting Reference</h1>
+            <h2>Risk Assessment Parameters</h2>
+            <p>Review key replacement cost thresholds and medical assessment requirements prior to committing data tracking updates.</p>
+        </div>
 
-    </div>
+        <!-- Topic 4: EPP Payment Guide -->
+        <div id="topic-4" class="view-panel">
+            <h1>EPP Payment Architecture</h1>
+            <p>Step-by-step clearance procedures for credit card enrollment and high-volume installment structures.</p>
+        </div>
 
+        <!-- Topic 5: Nomination Logic -->
+        <div id="topic-5" class="view-panel">
+            <h1>Nomination Structuring Policy</h1>
+            <p>Operational instructions governing execution parameters for cross-border beneficiary assignments and corporate entity replacements.</p>
+        </div>
+
+        <!-- Topic 6: Support Matrix -->
+        <div id="topic-6" class="view-panel">
+            <h1>Brokerage Operations Support</h1>
+            <p>Direct communication channels, template version logs, and diagnostic paths for offshore compliance validation systems.</p>
+        </div>
+
+    </main>
+
+    <!-- Interface Animation & Control Engine -->
+    <script>
+        // Smoothly switches between topics without reloading the page
+        function switchTopic(panelId) {
+            // 1. Hide all text/tool panels
+            document.querySelectorAll('.view-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            // 2. Clear out active styling colors from nav links
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 3. Unveil the selected content box
+            document.getElementById(panelId).classList.add('active');
+            // 4. Paint the clicked link button dark
+            event.target.classList.add('active');
+
+            // 5. AUTO-HIDE FEATURE: Immediately fold back mobile menu after clicking a topic
+            document.getElementById('navMenu').classList.remove('show');
+        }
+
+        // Toggles visibility of menu for mobile screens
+        function toggleMobileMenu() {
+            const menu = document.getElementById('navMenu');
+            menu.classList.toggle('show');
+        }
+    </script>
 </body>
 </html>
